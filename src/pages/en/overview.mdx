@@ -1,0 +1,81 @@
+---
+title: Overview
+metaTitle: "Getting Started With Snitch"
+description: Snitch SDK and Rules Engine overview
+layout: ../../layouts/MainLayout.astro
+---
+
+import tip from "@images/icons/tip.png";
+import checked from "@images/icons/checked.png";
+import ruleIcon from "@images/icons/rule.png";
+import sdkIcon from "@images/icons/sdk.png";
+import wasmIcon from "@images/icons/wasm.png";
+import piiIcon from "@images/icons/pii.png";
+import eventIcon from "@images/icons/event.png";
+import logIcon from "@images/icons/log.png";
+
+import { Notification } from "accessible-astro-components";
+import "../../styles/index.scss";
+
+<Notification type="tip">
+  <img src={tip} alt="tip" width="30px" height="30px" />
+  <div class="prose-md prose-p:my-2 prose-a:text-purple-dark prose-a:underline prose-a:underline-offset-2">
+      Snitch is your reliable partner for ensuring data compliance and security in real-time. By leveraging WASM for rule execution, Snitch can swiftly react to events and logs, ensuring you never compromise on sensitive data exposure.
+
+      Dive deeper
+      [here](https://snitch.com/docs/introducing-snitch-rules-engine "Snitch Rules Engine Documentation")
+      to understand the magic behind Snitch.
+
+  </div>
+</Notification>
+
+Snitch provides a robust SDK and rule creation interface that works seamlessly to keep your data streams compliant and secure.
+
+### Getting Started
+
+Dive into the world of real-time data security with Snitch. Starting is straightforward. Head over to our quickstart guide:
+
+<br />
+<a href="/en/getting-started/quick-start/" align="center">
+  <img src={quickstart} alt="quickstart" />
+</a>
+## What can you do with Snitch?
+
+---
+
+### **[Real-time Rules Engine](/en/components/rules-engine/overview/)**
+
+✅ Create custom rules using Snitch-server's UI<br/>
+✅ Convert rules to efficient WASM for rapid execution<br/>
+✅ Manage and update rules without affecting your data streams
+
+### **[SDK Integration](/en/components/sdk/overview/)**
+
+✅ Integrate Snitch SDK into your existing data pipelines<br/>
+✅ Compatible with popular languages, starting with Go<br/>
+✅ Ensure continuous monitoring and rule execution with ease
+
+### **[Event and Log Monitoring](/en/components/monitor/event-log-monitoring/)**
+
+✅ Process events and logs in real-time<br/>
+✅ Dynamic response actions like obfuscation or quarantine
+
+### **[PII Detection](/en/components/detection/pii-detection/)**
+
+✅ Ensure GDPR and PII compliance across your data streams<br/>
+✅ Immediate actions on PII detection to safeguard user privacy
+
+### **[Flexible Rule Responses](/en/components/responses/overview/)**
+
+✅ Set up custom actions like notifications, logging, or data transformations<br/>
+✅ Tailored responses to fit your business needs
+
+### **[WASM Rule Execution](/en/components/wasm/overview/)**
+
+✅ Benefit from the speed and flexibility of WASM<br/>
+✅ Easy debugging and performance optimizations
+
+### **[Comprehensive Documentation & Support](/en/components/docs-support/)**
+
+✅ Comprehensive documentation to get you started<br/>
+✅ Community and official support channels for any queries or issues

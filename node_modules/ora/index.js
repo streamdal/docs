@@ -354,15 +354,15 @@ class Ora {
 			return this;
 		}
 
-		const prefixText = options.prefixText ?? this.#prefixText;
+		const prefixText = options.prefixText || this.#prefixText;
 		const fullPrefixText = this.getFullPrefixText(prefixText, ' ');
 
-		const symbolText = options.symbol ?? ' ';
+		const symbolText = options.symbol || ' ';
 
-		const text = options.text ?? this.text;
+		const text = options.text || this.text;
 		const fullText = (typeof text === 'string') ? ' ' + text : '';
 
-		const suffixText = options.suffixText ?? this.#suffixText;
+		const suffixText = options.suffixText !== undefined ? options.suffixText : this.#suffixText;
 		const fullSuffixText = this.getFullSuffixText(suffixText, ' ');
 
 		const textToWrite = fullPrefixText + symbolText + fullText + fullSuffixText + '\n';

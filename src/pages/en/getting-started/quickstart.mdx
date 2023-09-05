@@ -1,14 +1,83 @@
 ---
-title: Quickstart
-description: Snitch Quickstart
+title: Quik Start 
+metaTitle: "Install snitch in minutes with our quick start guides."
+description: A quick start guide to install snitch in minutes
 layout: ../../../layouts/MainLayout.astro
 ---
 
-import info from "@images/icons/info.png";
+<br />
+<br />
+Welcome to `snitch`, your comprehensive tool designed for efficiency, scalability, and simplicity. Before we jump into the deployment, let's briefly introduce the core components that will be installed:
 
-import { Notification } from "accessible-astro-components";
+1. **NATS**: A high-performance, lightweight, and secure messaging system. It acts as the backbone for our real-time communication in the `snitch` ecosystem.
+2. **snitch-server**: The heart of `snitch`, responsible for processing, storing, and distributing data. It's optimized for fast performance and high availability.
+3. **Envoy**: A modern, high performance edge and service proxy. In the context of `snitch`, Envoy handles incoming requests, ensuring efficient load balancing, and providing advanced networking features.
+4. **snitch-console**: The user interface of `snitch`. It offers a clear view of your data, easy-to-use features, and seamless integration with other `snitch` components.
 
-<Notification type="information">
-  <img src={info} alt="Information" width="30px" height="30px" />
-  <p style="font-weight: lighter;">Sorry, this page is not ready yet!</p>
-</Notification>
+Now, let's explore how you can deploy `snitch` using our quick start methods: Helm, CloudFormation, or Docker Compose.
+
+---
+
+### **Deploying with Helm**
+
+#### Requirements:
+- **Kubernetes Cluster**: You should have an active Kubernetes cluster.
+- **Helm**: Ensure Helm is installed and configured on your machine. We recommend using Helm v3 or above.
+- **kubectl**: Installed and configured to communicate with your Kubernetes cluster.
+- **RBAC**: Depending on your cluster configuration, you might need to have RBAC permissions.
+- **Volumes**: Nats will need access to a volume to persist data
+
+**Quick Deploy:**
+
+```jsx
+# Add the snitch Helm repo
+curl -s https://raw.githubusercontent.com/streamdal/snitch/helm-repo-setup.sh | bash
+
+# Install snitch
+helm install snitch streamdal/snitch-server
+```
+
+See deployment guide for more details on how to customize and access the console.
+
+[Detailed Helm Guide](https://github.com/streamdal/snitch)
+
+---
+
+### **Deploying with CloudFormation**
+
+#### Requirements:
+- **AWS Account**: Ensure you have an active AWS account with appropriate permissions.
+- **AWS CLI**: Installed and configured with the necessary credentials.
+- **S3 Bucket**: Required for storing CloudFormation artifacts.
+- **VPC**: A VPC with private subnets
+
+**Quick Deploy:**
+
+```jsx
+# Deploy snitch using CloudFormation
+curl -s https://raw.githubusercontent.com/streamdal/snitch/cloudformation-setup.sh | bash
+```
+
+See deployment guide for more details on how to customize and access the console.
+
+[Detailed CloudFormation Guide](https://github.com/streamdal/snitch)
+
+---
+
+### **Deploying with Docker Compose**
+
+#### Requirements:
+- **Docker**: Installed and running on your machine.
+- **Docker Compose**: Ensure Docker Compose is installed.
+- **System Resources**: Depending on the scale, ensure you have adequate CPU, memory, and storage allocated.
+
+**Quick Deploy:**
+
+```jsx
+# Get the docker-compose.yml file and bring up the stack
+curl -s https://raw.githubusercontent.com/streamdal/snitch/docker-compose-setup.sh | bash 
+```
+
+See deployment guide for more details on how to customize and access the console.
+
+[Detailed Docker Compose Guide](github.com/streamdal/snitch)

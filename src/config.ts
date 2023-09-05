@@ -73,7 +73,7 @@ export const SIDEBAR: Sidebar = {
           {
             text: "What is Snitch?",
             slug: "what-is-snitch",
-            link: "en/what-is-snitch",
+            link: "en/getting-started/what-is-snitch",
           },
           {
             text: "How Snitch Works",

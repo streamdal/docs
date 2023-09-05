@@ -11,16 +11,26 @@ import {
 	getCurrentVNode,
 	getDisplayName
 } from './component-stack';
-import { assign } from './util';
+import { assign, isNaN } from './util';
 
 const isWeakMapSupported = typeof WeakMap == 'function';
 
-function getClosestDomNodeParent(parent) {
-	if (!parent) return {};
+/**
+ * @param {import('./internal').VNode} parent
+ * @returns {string}
+ */
+function getClosestDomNodeParentName(parent) {
+	if (!parent) return '';
 	if (typeof parent.type == 'function') {
-		return getClosestDomNodeParent(parent._parent);
+		if (parent._parent === null) {
+			if (parent._dom !== null && parent._dom.parentNode !== null) {
+				return parent._dom.parentNode.localName;
+			}
+			return '';
+		}
+		return getClosestDomNodeParentName(parent._parent);
 	}
-	return parent;
+	return /** @type {string} */ (parent.type);
 }
 
 export function initDebug() {
@@ -32,9 +42,11 @@ export function initDebug() {
 	let oldBeforeDiff = options._diff;
 	let oldDiffed = options.diffed;
 	let oldVnode = options.vnode;
+	let oldRender = options._render;
 	let oldCatchError = options._catchError;
 	let oldRoot = options._root;
 	let oldHook = options._hook;
+	let oldCommit = options._commit;
 	const warnedComponents = !isWeakMapSupported
 		? null
 		: {
@@ -43,6 +55,8 @@ export function initDebug() {
 				lazyPropTypes: new WeakMap()
 		  };
 	const deprecations = [];
+	/** @type {import("./internal.d.ts").VNode[]} */
+	let checkVNodeDom = [];
 
 	options._catchError = (error, vnode, oldVNode, errorInfo) => {
 		let component = vnode && vnode._component;
@@ -72,7 +86,7 @@ export function initDebug() {
 			errorInfo.componentStack = getOwnerStack(vnode);
 			oldCatchError(error, vnode, oldVNode, errorInfo);
 
-			// when an error was handled by an ErrorBoundary we will nontheless emit an error
+			// when an error was handled by an ErrorBoundary we will nonetheless emit an error
 			// event on the window object. This is to make up for react compatibility in dev mode
 			// and thus make the Next.js dev overlay work.
 			if (typeof error.then != 'function') {
@@ -115,8 +129,18 @@ export function initDebug() {
 	};
 
 	options._diff = vnode => {
-		let { type, _parent: parent } = vnode;
-		let parentVNode = getClosestDomNodeParent(parent);
+		let { type } = vnode;
+		if (
+			typeof type === 'string' &&
+			(type === 'thead' ||
+				type === 'tfoot' ||
+				type === 'tbody' ||
+				type === 'tr' ||
+				type === 'td' ||
+				type === 'th')
+		) {
+			checkVNodeDom.push(vnode);
+		}
 
 		hooksAllowed = true;
 
@@ -142,41 +166,6 @@ export function initDebug() {
 			throw new Error(
 				'Invalid type passed to createElement(): ' +
 					(Array.isArray(type) ? 'array' : type)
-			);
-		}
-
-		if (
-			(type === 'thead' || type === 'tfoot' || type === 'tbody') &&
-			parentVNode.type !== 'table'
-		) {
-			console.error(
-				'Improper nesting of table. Your <thead/tbody/tfoot> should have a <table> parent.' +
-					serializeVNode(vnode) +
-					`\n\n${getOwnerStack(vnode)}`
-			);
-		} else if (
-			type === 'tr' &&
-			parentVNode.type !== 'thead' &&
-			parentVNode.type !== 'tfoot' &&
-			parentVNode.type !== 'tbody' &&
-			parentVNode.type !== 'table'
-		) {
-			console.error(
-				'Improper nesting of table. Your <tr> should have a <thead/tbody/tfoot/table> parent.' +
-					serializeVNode(vnode) +
-					`\n\n${getOwnerStack(vnode)}`
-			);
-		} else if (type === 'td' && parentVNode.type !== 'tr') {
-			console.error(
-				'Improper nesting of table. Your <td> should have a <tr> parent.' +
-					serializeVNode(vnode) +
-					`\n\n${getOwnerStack(vnode)}`
-			);
-		} else if (type === 'th' && parentVNode.type !== 'tr') {
-			console.error(
-				'Improper nesting of table. Your <th> should have a <tr>.' +
-					serializeVNode(vnode) +
-					`\n\n${getOwnerStack(vnode)}`
 			);
 		}
 
@@ -252,6 +241,13 @@ export function initDebug() {
 		if (oldBeforeDiff) oldBeforeDiff(vnode);
 	};
 
+	options._render = vnode => {
+		if (oldRender) {
+			oldRender(vnode);
+		}
+		hooksAllowed = true;
+	};
+
 	options._hook = (comp, index, type) => {
 		if (!comp || !hooksAllowed) {
 			throw new Error('Hook can only be invoked from render methods.');
@@ -320,10 +316,7 @@ export function initDebug() {
 		// that were actually rendered.
 		if (vnode._children) {
 			vnode._children.forEach(child => {
-				if (child && child.type === undefined) {
-					// Remove internal vnode keys that will always be patched
-					delete child._parent;
-					delete child._depth;
+				if (typeof child === 'object' && child && child.type === undefined) {
 					const keys = Object.keys(child).join(',');
 					throw new Error(
 						`Objects are not valid as a child. Encountered an object with the keys {${keys}}.` +
@@ -360,11 +353,83 @@ export function initDebug() {
 				keys.push(key);
 			}
 		}
+
+		if (vnode._component != null && vnode._component.__hooks != null) {
+			// Validate that none of the hooks in this component contain arguments that are NaN.
+			// This is a common mistake that can be hard to debug, so we want to catch it early.
+			const hooks = vnode._component.__hooks._list;
+			if (hooks) {
+				for (let i = 0; i < hooks.length; i += 1) {
+					const hook = hooks[i];
+					if (hook._args) {
+						for (const arg of hook._args) {
+							if (isNaN(arg)) {
+								const componentName = getDisplayName(vnode);
+								throw new Error(
+									`Invalid argument passed to hook. Hooks should not be called with NaN in the dependency array. Hook index ${i} in component ${componentName} was called with NaN.`
+								);
+							}
+						}
+					}
+				}
+			}
+		}
+	};
+
+	options._commit = (root, queue) => {
+		for (let i = 0; i < checkVNodeDom.length; i++) {
+			const vnode = checkVNodeDom[i];
+
+			// Check if HTML nesting is valid. We need to do it in `options.diffed`
+			// so that we can optionally traverse outside the vdom root in case
+			// it's an island embedded in an existing (and valid) HTML tree.
+			const { type, _parent: parent } = vnode;
+
+			let domParentName = getClosestDomNodeParentName(parent);
+
+			if (
+				(type === 'thead' || type === 'tfoot' || type === 'tbody') &&
+				domParentName !== 'table'
+			) {
+				console.error(
+					'Improper nesting of table. Your <thead/tbody/tfoot> should have a <table> parent.' +
+						serializeVNode(vnode) +
+						`\n\n${getOwnerStack(vnode)}`
+				);
+			} else if (
+				type === 'tr' &&
+				domParentName !== 'thead' &&
+				domParentName !== 'tfoot' &&
+				domParentName !== 'tbody' &&
+				domParentName !== 'table'
+			) {
+				console.error(
+					'Improper nesting of table. Your <tr> should have a <thead/tbody/tfoot/table> parent.' +
+						serializeVNode(vnode) +
+						`\n\n${getOwnerStack(vnode)}`
+				);
+			} else if (type === 'td' && domParentName !== 'tr') {
+				console.error(
+					'Improper nesting of table. Your <td> should have a <tr> parent.' +
+						serializeVNode(vnode) +
+						`\n\n${getOwnerStack(vnode)}`
+				);
+			} else if (type === 'th' && domParentName !== 'tr') {
+				console.error(
+					'Improper nesting of table. Your <th> should have a <tr>.' +
+						serializeVNode(vnode) +
+						`\n\n${getOwnerStack(vnode)}`
+				);
+			}
+		}
+		checkVNodeDom = [];
+
+		if (oldCommit) oldCommit(root, queue);
 	};
 }
 
 const setState = Component.prototype.setState;
-Component.prototype.setState = function(update, callback) {
+Component.prototype.setState = function (update, callback) {
 	if (this._vnode == null) {
 		// `this._vnode` will be `null` during componentWillMount. But it
 		// is perfectly valid to call `setState` during cWM. So we
@@ -383,7 +448,7 @@ Component.prototype.setState = function(update, callback) {
 };
 
 const forceUpdate = Component.prototype.forceUpdate;
-Component.prototype.forceUpdate = function(callback) {
+Component.prototype.forceUpdate = function (callback) {
 	if (this._vnode == null) {
 		console.warn(
 			`Calling "this.forceUpdate" inside the constructor of a component is a ` +
