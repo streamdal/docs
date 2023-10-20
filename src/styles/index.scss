@@ -514,6 +514,20 @@ h1 {
   padding-bottom: 3px;
   padding-top: 25px;
 }
+.number-badge {
+  background-color: #EFEFEF;   /* Light gray background */
+  border: 2px solid #C0C0C0;  /* Soft gray border */
+  border-radius: 5px;         /* Soft rounded corners */
+  width: 30px;                /* Adjust based on your design */
+  height: 30px;
+  display: inline-flex;       /* Make sure it stays inline */
+  align-items: center;       /* Vertically center the number */
+  justify-content: center;   /* Horizontally center the number */
+  font-weight: bold;
+  color: #333;               /* Dark text color */
+  margin-right: 15px;        /* Space between the number and text */
+  font-size: 1.0em;          /* Adjust based on your design */
+}
 
 /* Visual Styles */
 
