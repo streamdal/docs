@@ -7,6 +7,8 @@
 
 </div>  
 
+# [THIS REPO HAS MOVED](https://github.com/streamdal/mono)
+
 **This is the documentation repo for the [Streamdal](https://streamdal.com) project.**
 
 https://docs.streamdal.com
